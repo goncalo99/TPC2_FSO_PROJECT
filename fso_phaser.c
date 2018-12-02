@@ -60,6 +60,7 @@ int fso_phaser_advance_and_await(fso_phaser_t* phaser) {
 		pthread_cond_wait(&phaser->cond, &phaser->mutex);
         pthread_mutex_unlock(&phaser->mutex);
 	}
+    pthread_cond_signal(&phaser->cond);
 
     // TODO
 
