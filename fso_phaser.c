@@ -76,16 +76,10 @@ int fso_phaser_advance(fso_phaser_t* phaser) {
         pthread_mutex_unlock(&phaser->mutex);
         return -1;
     }
-    pthread_mutex_unlock(&phaser->mutex);
-	int currentPhase = fso_phaser_current(phaser);
-    pthread_mutex_lock(&phaser->mutex);
 	phaser->phases[index_in_phase_array]++;
-    pthread_mutex_unlock(&phaser->mutex);
-	if(currentPhase < fso_phaser_current(phaser)) {
-        pthread_mutex_lock(&phaser->mutex);
-        pthread_cond_signal(&phaser->cond);
-        pthread_mutex_unlock(&phaser->mutex);
-    }
+	pthread_cond_signal(&phaser->cond);
+	pthread_mutex_unlock(&phaser->mutex);
+
 
 	// TODO
 	
