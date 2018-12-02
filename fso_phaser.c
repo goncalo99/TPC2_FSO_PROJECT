@@ -31,13 +31,11 @@ int fso_phaser_current(fso_phaser_t* phaser) {
 
     int  result = phaser->phases[0];
     //TODO
-    for(int i = 1; i < phaser->number_threads; i++) {
-        if (phaser->phases[i] < result) {
-            pthread_mutex_lock(&phaser->mutex);
+	pthread_mutex_lock(&phaser->mutex);
+    for(int i = 1; i < phaser->number_threads; i++)
+        if (phaser->phases[i] < result)
             result = phaser->phases[i];
-            pthread_mutex_unlock(&phaser->mutex);
-        }
-    }
+	pthread_mutex_unlock(&phaser->mutex);
     return result;
 }
 
