@@ -31,11 +31,12 @@ int fso_phaser_current(fso_phaser_t* phaser) {
 
     int  result = 101;
     //TODO
+	pthread_mutex_lock(&phaser->mutex);
     for(int i = 0; i < phaser->number_threads; i++) {
         if (phaser->phases[i] < result)
             result = phaser->phases[i];
     }
-
+	pthread_mutex_unlock(&phaser->mutex);
     return result;
 }
 
@@ -44,17 +45,18 @@ int fso_phaser_advance_and_await(fso_phaser_t* phaser) {
     int result;
 
     // TODO
-
     int index_in_phase_array = pthread_to_pos(pthread_self());
     if(index_in_phase_array < 0)
         return -1;
     pthread_mutex_lock(&phaser->mutex);
     phaser->phases[index_in_phase_array]++;
     int phase = phaser->phases[index_in_phase_array];
-    while(fso_phaser_current(phaser) < phase) {
-		pthread_cond_wait(&phaser->cond, &phaser->mutex);
-	}
     pthread_mutex_unlock(&phaser->mutex);
+    while(fso_phaser_current(phaser) < phase) {
+    	pthread_mutex_lock(&phaser->mutex);
+		pthread_cond_wait(&phaser->cond, &phaser->mutex);
+        pthread_mutex_unlock(&phaser->mutex);
+	}
 
     // TODO
 
@@ -66,16 +68,21 @@ int fso_phaser_advance(fso_phaser_t* phaser) {
 	int result;
 
 	// TODO
+
 	int index_in_phase_array = pthread_to_pos(pthread_self());
 	if(index_in_phase_array < 0)
 		return -1;
-    pthread_mutex_lock(&phaser->mutex);
+
 	int currentPhase = fso_phaser_current(phaser);
+    pthread_mutex_lock(&phaser->mutex);
 	phaser->phases[index_in_phase_array]++;
-	if(currentPhase < fso_phaser_current(phaser)) {
-        pthread_cond_signal(&phaser->cond);
-    }
     pthread_mutex_unlock(&phaser->mutex);
+	if(currentPhase < fso_phaser_current(phaser)) {
+        pthread_mutex_lock(&phaser->mutex);
+        pthread_cond_signal(&phaser->cond);
+        pthread_mutex_unlock(&phaser->mutex);
+    }
+
 	// TODO
 	
 	return 0;
