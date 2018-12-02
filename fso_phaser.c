@@ -52,6 +52,7 @@ int fso_phaser_advance_and_await(fso_phaser_t* phaser) {
         return -1;
     }
     phaser->phases[index_in_phase_array]++;
+    pthread_cond_signal(&phaser->cond);
     int phase = phaser->phases[index_in_phase_array];
     pthread_mutex_unlock(&phaser->mutex);
     while(fso_phaser_current(phaser) < phase) {
